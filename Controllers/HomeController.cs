@@ -7,64 +7,71 @@ namespace ApiToDoList.Controllers
     public class HomeController : ControllerBase
     {
         [HttpGet]
-        [Route("/ola")]
-        public List<Todo> Get([FromServices] AppDbContext context)
+        [Route("/")]
+        public IActionResult Get([FromServices] AppDbContext context)
         {
-            return context.Todos.ToList();
+            return Ok(context.Todos.ToList());
         }
 
         [HttpGet("/{id:int}")]
-        public Todo GetById(
+        public IActionResult GetById(
             [FromRoute] int id,
             [FromServices] AppDbContext context)
         {
-            return context.Todos.FirstOrDefault(x => x.Id == id);
+            var todo = context.Todos.FirstOrDefault(x => x.Id == id);
+            if (todo == null)
+                return NotFound();
+
+            return Ok(todo);
+
         }
 
 
         [HttpPost("/")]
-        public List<Todo> Post(
+        public IActionResult Post(
             [FromBody] Todo toDo,
             [FromServices] AppDbContext context)
         {
             context.Todos.Add(toDo);
             context.SaveChanges();
-            return context.Todos.ToList();
+            return Created($"/{toDo.Id}", toDo);
         }
 
         [HttpPut("/{id:int}")]
-        public Todo Put(
+        public IActionResult Put(
             [FromRoute] int id,
             [FromBody] Todo toDo,
             [FromServices] AppDbContext context)
         {
             var model = context.Todos.FirstOrDefault(x => x.Id == id);
             if (model == null)
-                return toDo;
+                return NotFound();
 
             model.Title = toDo.Title;
             model.Done = toDo.Done;
 
             context.Todos.Update(model);
             context.SaveChanges();
-            return model;
+            return Ok(model);
         }
 
 
         [HttpDelete("/{id:int}")]
-        public Todo Delete(
+        public IActionResult Delete(
             [FromRoute] int id,
             [FromBody] Todo toDo,
             [FromServices] AppDbContext context)
         {
             var model = context.Todos.FirstOrDefault(x => x.Id == id);
+            if (model == null)
+                return NotFound();
 
             model.Title = toDo.Title;
             model.Done = toDo.Done;
 
             context.Todos.Remove(model);
             context.SaveChanges();
-            return model;
+            return Ok(model);
         }
 
     }
